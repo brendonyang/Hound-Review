@@ -1,0 +1,15 @@
+javascript:
+  enabled: false
+scss:
+  config_file: ./.scss-lint.yml
+haml:
+  enabled: false
+ruby:
+  config_file: ./config/houndci/ruby-style.yml
+eslint:
+  enabled: true
+  config_file: ./.eslintrc.json
+tslint:
+  enabled: false
+  config_file: ./tslint.json
+fail_on_violations: true
