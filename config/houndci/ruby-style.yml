@@ -268,14 +268,14 @@ Layout/MultilineOperationIndentation:
   - aligned
   - indented
 Layout/MultilineMethodCallIndentation:
-  EnforcedStyle: indented_relative_to_receiver
+  EnforcedStyle: aligned
   SupportedStyles:
     - aligned
     - indented
     - indented_relative_to_receiver
   # By default, the indentation width from Layout/IndentationWidth is used
   # But it can be overridden by setting this parameter
-  IndentationWidth: 0
+  IndentationWidth: ~
 Style/NumericLiterals:
   Description: Add underscores to large numeric literals to improve their readability.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#underscores-in-numerics
