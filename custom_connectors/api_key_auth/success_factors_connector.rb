@@ -533,7 +533,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time.utc.iso8601 }
               else
                 { key => value }
@@ -565,7 +565,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time.utc.iso8601 }
               else
                 { key => value }
@@ -611,7 +611,7 @@
           if date_fields.include?(key)
             if value.present?
               date_time = value.to_time.utc.iso8601.to_i * 1000 unless
-              !value.present?
+              value.blank?
               { key => "\/Date(" + date_time + ")\/" }
             else
               { key => value }
@@ -645,7 +645,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -687,7 +687,7 @@
           if date_fields.include?(key)
             if value.present?
               date_time = value.to_time.utc.iso8601.to_i * 1000 unless
-              !value.present?
+              value.blank?
               { key => "\/Date(" + date_time + ")\/" }
             else
               { key => value }
@@ -722,7 +722,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -790,7 +790,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -826,7 +826,7 @@
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
-                date_time = value.scan(/\d+/)[0] unless !value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
