@@ -512,16 +512,16 @@
 
       execute: lambda do |connection, input|
         object_name = input.delete("object_name")
-        error("Provide at least one search criteria") if input.blank?
+        error("Provide at least one search criteria") if !input.present?
         date_fields = call("date_fields", { object_name: object_name })
         filter_string = ""
         filter_params = []
         input.map do |key, val|
           if date_fields.include?(key)
             filter_params <<
-              (key + " eq '" + "/Date(" + val + ")/" + "'") unless val.blank?
+              (key + " eq '" + "/Date(" + val + ")/" + "'") unless !val.present?
           else
-            filter_params << (key + " eq '" + val + "'") unless val.blank?
+            filter_params << (key + " eq '" + val + "'") unless !val.present?
           end
         end
         filter_string = filter_params.smart_join(" and ")
@@ -532,8 +532,8 @@
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time.utc.iso8601 }
               else
                 { key => value }
@@ -564,8 +564,8 @@
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time.utc.iso8601 }
               else
                 { key => value }
@@ -601,7 +601,7 @@
       execute: lambda do |_connection, input|
         object_name = input.delete("object_name")
         # set empployee id on User creation
-        if object_name == "User" && input["empId"].blank?
+        if object_name == "User" && !input["empId"].present?
           employee_id = post("/odata/v2/generateNextPersonID?$format=json").
                         dig("d", "GenerateNextPersonIDResponse", "personID")
           input["empId"] = employee_id
@@ -609,9 +609,9 @@
         date_fields = call("date_fields", object_name: object_name)
         payload = input.map do |key, value|
           if date_fields.include?(key)
-            if !value.blank?
+            if value.present?
               date_time = value.to_time.utc.iso8601.to_i * 1000 unless
-              value.blank?
+              !value.present?
               { key => "\/Date(" + date_time + ")\/" }
             else
               { key => value }
@@ -644,8 +644,8 @@
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -685,9 +685,9 @@
         date_fields = call(:date_fields, object_name: object_name)
         payload = input.map do |key, value|
           if date_fields.include?(key)
-            if !value.blank?
+            if value.present?
               date_time = value.to_time.utc.iso8601.to_i * 1000 unless
-              value.blank?
+              !value.present?
               { key => "\/Date(" + date_time + ")\/" }
             else
               { key => value }
@@ -721,8 +721,8 @@
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -789,8 +789,8 @@
                              obj["lastModifiedDateTime"].scan(/\d+/)[0].to_s
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
@@ -825,8 +825,8 @@
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
-              if !value.blank?
-                date_time = value.scan(/\d+/)[0] unless value.blank?
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless !value.present?
                 { key => (date_time.to_i / 1000).to_i.to_time }
               else
                 { key => value }
