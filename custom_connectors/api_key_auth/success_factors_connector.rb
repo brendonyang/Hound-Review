@@ -66,6 +66,17 @@
       fields: lambda do |_connection, config|
         call("generate_schama", object_name: config['object_name'], type: "@filterable")
       end
+    },
+
+    option_labels: {
+      fields: lambda do
+        [
+          { name: "optionId" },
+          { name: "locale" },
+          { name: "id" },
+          { name: "label" }
+        ]
+      end
     }
   },
 
@@ -81,8 +92,7 @@
          1, "EntityType", 0, "Property").
         select do |field|
           ["Edm.DateTime", "Edm.DateTimeOffset"].include?(field["@Type"])
-        end.
-        map { |e| e["@Name"] }
+        end.map { |e| e["@Name"] }
     end,
 
     object_key: lambda do |input|
@@ -469,8 +479,40 @@
         end
         final_objects&.first || {}
       end
-    }
+    },
 
+    get_option_labels_by_optionid: {
+      description: "Get <span class='provider'>Option labels</span>  " \
+        "<span class='provider'> by Option Id</span>",
+      subtitle: "Get option label's by optionid",
+      input_fields: lambda do |_|
+        [
+          { name: "optionid", label: "Option id",
+            optional: false }
+        ]
+      end,
+      execute: lambda do |_connection, input|
+        {
+          option_labels: get("/odata/v2/PicklistOption(" +
+           input["optionid"] + ")/picklistLabels").
+          params("$format": "json").dig("d", "results") || []
+        }
+      end,
+      output_fields: lambda do |object_definitions|
+        [
+          { name: "option_labels", type: "array", of: "object",
+            properties: object_definitions["option_labels"] }
+        ]
+      end,
+      sample_output: lambda do
+        {
+          optionId: "31917",
+          locale: "en_US",
+          id: "564749",
+          label: "Low"
+        }
+      end
+    }
   },
 
   triggers: {
