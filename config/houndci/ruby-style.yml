@@ -268,7 +268,7 @@ Layout/MultilineOperationIndentation:
   - aligned
   - indented
 Layout/MultilineMethodCallIndentation:
-  EnforcedStyle: aligned
+  EnforcedStyle: indented_relative_to_receiver
   SupportedStyles:
     - aligned
     - indented
