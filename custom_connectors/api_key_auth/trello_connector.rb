@@ -503,7 +503,7 @@
 
   pick_lists: {
     board: lambda do |connection|
-      get("https://api.trello.com/1/organizations/workatoteam/boards").
+      get("/organizations/workatoteam/boards").
         params(token: connection["user_token"]).
         pluck("name", "id")
     end
