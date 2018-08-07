@@ -40,7 +40,7 @@
 
   object_definitions: {
     board: {
-      fields: lambda do |connection|
+      fields: lambda do |_connection|
         [
           { name: "id" },
           { name: "name" },
@@ -77,7 +77,7 @@
     },
 
     list: {
-      fields: lambda do |connection|
+      fields: lambda do |_connection|
         [
           { name: "id" },
           { name: "name" },
@@ -90,7 +90,7 @@
     },
 
     card: {
-      fields: lambda do |connection|
+      fields: lambda do |_connection|
         [
           { name: "id" },
           { name: "name" },
@@ -114,7 +114,7 @@
     },
 
     member: {
-      fields: lambda do |connection|
+      fields: lambda do |_connection|
         [
           { name: "id" },
           { name: "email" },
@@ -126,7 +126,7 @@
     },
 
     webhook_event: {
-      fields: lambda do |connection|
+      fields: lambda do |_connection|
         [
           { name: "model", type: :object, properties: [
             { name: "id" },
@@ -153,7 +153,7 @@
                 { name: "name" },
                 { name: "id" },
                 { name: "shortLink" },
-                { name: "idShort", type: :integer},
+                { name: "idShort", type: :integer },
                 { name: "idList" },
                 { name: "pos", type: :integer }
               ] },
@@ -226,7 +226,7 @@
       end,
 
       execute: lambda do |connection, input|
-        get("/boards/#{input["board"]}").
+        get("/boards/#{input['board']}").
           params(token: connection["user_token"])
       end,
 
@@ -281,7 +281,7 @@
         ]
       end,
 
-      execute: lambda do |connection, input|
+      execute: lambda do |_connection, input|
         {
           cards: get("/lists/#{input['list_id']}/cards")
         }
@@ -330,8 +330,8 @@
         ]
       end,
 
-      execute: lambda do |connection, input|
-        query_string = input.map { |k,v| (k + ":\"" + v + "\"").to_s }.join(" ")
+      execute: lambda do |_connection, input|
+        query_string = input.map { |k, v| (k + ":\"" + v + "\"").to_s }.join(" ")
         get("/search").
           params(query: query_string,
                  modelTypes: "cards",
@@ -369,12 +369,11 @@
               hint: "Get details of member with this ID",
               toggle_hint: "Use member ID",
               optional: false
-            }
-          }
+            } }
         ]
       end,
 
-      execute: lambda do |connection, input|
+      execute: lambda do |_connection, input|
         get("/members/#{input['member']}")
       end,
 
@@ -469,7 +468,7 @@
         ]
       end,
 
-      webhook_subscribe: lambda do |callback_url, connection, input, flow_id|
+      webhook_subscribe: lambda do |callback_url, connection, input, _|
         data = post(
           "/tokens/#{connection['user_token']}/webhooks/",
           description: "Webhook registered by Workato recipe",
@@ -488,12 +487,12 @@
         ).params(key: connection["user_token"])
       end,
 
-      webhook_notification: lambda do |input, payload|
+      webhook_notification: lambda do |_input, payload|
         payload
       end,
 
-      dedup: lambda do |event|
-        rand() + "@" + time.now
+      dedup: lambda do |_event|
+        rand + "@" + Time.now
       end,
 
       output_fields: lambda do |object_definitions|
@@ -504,9 +503,9 @@
 
   pick_lists: {
     board: lambda do |connection|
-      get("https://api.trello.com/1/organizations/workatoteam/boards")
-        .params(token: connection["user_token"])
-        .pluck("name", "id")
+      get("https://api.trello.com/1/organizations/workatoteam/boards").
+        params(token: connection["user_token"]).
+        pluck("name", "id")
     end
   }
 }
