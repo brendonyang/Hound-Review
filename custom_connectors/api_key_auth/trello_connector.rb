@@ -492,7 +492,7 @@
       end,
 
       dedup: lambda do |_event|
-        rand + "@" + Time.now
+        rand + "@" + Time.now.utc
       end,
 
       output_fields: lambda do |object_definitions|
