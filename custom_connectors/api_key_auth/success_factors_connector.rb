@@ -494,8 +494,8 @@
       end,
       execute: lambda do |connection, input|
         {
-          option_labels: get("/odata/v2/PicklistOption("
-           + input["optionid"] + ")/picklistLabels").
+          option_labels: get("/odata/v2/PicklistOption(" +
+              input["optionid"] + ")/picklistLabels").
           params("$format": "json").dig("d", "results")
         }
       end,
@@ -650,3 +650,4 @@
     end
   }
 }
+
