@@ -67,7 +67,7 @@
         call("generate_schama", object_name: config['object_name'], type: "@filterable")
       end
     },
-
+    
     option_labels: {
       fields: lambda do
         [
@@ -92,7 +92,8 @@
          1, "EntityType", 0, "Property").
         select do |field|
           ["Edm.DateTime", "Edm.DateTimeOffset"].include?(field["@Type"])
-        end.map { |e| e["@Name"] }
+        end.
+        map { |e| e["@Name"] }
     end,
 
     object_key: lambda do |input|
@@ -333,7 +334,7 @@
         {
           name: "object_name", label: "Object",
           control_type: "select",
-          pick_list: "entity_set",
+          pick_list: "entity_set_create",
           hint: "Select object",
           optional: false
         }
@@ -414,7 +415,7 @@
         {
           name: "object_name", label: "Object",
           control_type: "select",
-          pick_list: "entity_set",
+          pick_list: "entity_set_update",
           hint: "Select object",
           optional: false
         }
@@ -480,7 +481,7 @@
         final_objects&.first || {}
       end
     },
-
+    
     get_option_labels_by_optionid: {
       description: "Get <span class='provider'>Option labels</span>  " \
         "<span class='provider'> by Option Id</span>",
@@ -491,11 +492,11 @@
             optional: false }
         ]
       end,
-      execute: lambda do |_connection, input|
+      execute: lambda do |connection, input|
         {
-          option_labels: get("/odata/v2/PicklistOption(" +
-           input["optionid"] + ")/picklistLabels").
-          params("$format": "json").dig("d", "results") || []
+          option_labels: get("/odata/v2/PicklistOption("
+           + input["optionid"] + ")/picklistLabels").
+          params("$format": "json").dig("d", "results")
         }
       end,
       output_fields: lambda do |object_definitions|
@@ -513,6 +514,7 @@
         }
       end
     }
+
   },
 
   triggers: {
@@ -625,6 +627,24 @@
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
             "EntityContainer", 0, "EntitySet").map do |obj|
+        [obj["@label"], obj["@Name"]]
+      end
+    end,
+    
+    entity_set_create: lambda do
+      get("/odata/v2/$metadata").response_format_xml.
+        dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
+            "EntityContainer", 0, "EntitySet").
+      select { |field| field["@creatable"] == "true" }.map do |obj|
+        [obj["@label"], obj["@Name"]]
+      end
+    end,
+    
+    entity_set_update: lambda do
+      get("/odata/v2/$metadata").response_format_xml.
+        dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
+            "EntityContainer", 0, "EntitySet").
+      select { |field| field["@updatable"] == "true" }.map do |obj|
         [obj["@label"], obj["@Name"]]
       end
     end
