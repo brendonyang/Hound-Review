@@ -847,24 +847,24 @@
     entity_set: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-          "EntityContainer", 0, "EntitySet").map do |obj|
+         "EntityContainer", 0, "EntitySet").map do |obj|
             [obj["@label"], obj["@Name"]]
           end
     end,
-    
+
     entity_set_create: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-          "EntityContainer", 0, "EntitySet").
+         "EntityContainer", 0, "EntitySet").
         select { |field| field["@creatable"] == "true" }.map do |obj|
           [obj["@label"], obj["@Name"]]
         end
     end,
-    
+
     entity_set_update: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-          "EntityContainer", 0, "EntitySet").
+         "EntityContainer", 0, "EntitySet").
         select { |field| field["@updatable"] == "true" }.map do |obj|
           [obj["@label"], obj["@Name"]]
         end
@@ -873,7 +873,7 @@
     entity_set_upsert: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-          "EntityContainer", 0, "EntitySet").
+         "EntityContainer", 0, "EntitySet").
         select { |field| field["@upsertable"] == "true" }.map do |obj|
           [obj["@label"], obj["@Name"]]
         end
