@@ -62,6 +62,12 @@
       end
     },
 
+    object_upsert: {
+      fields: lambda do |_connection, config|
+        call("generate_schama", object_name: config['object_name'], type: "@upsertable")
+      end
+    },
+
     object_filter: {
       fields: lambda do |_connection, config|
         call("generate_schama", object_name: config['object_name'], type: "@filterable")
@@ -139,6 +145,17 @@
             else
               true
             end
+          description = if ( input[:type] == "@upsertable" && o["@Name"] == key_column )
+            if o["@Name"] == key_column
+              "Key column, updates if exists othewise create new one"
+            elsif o["@required"].include?("true")
+              "Required "
+            end
+          end || nil
+          sticky = if ( input[:type] == "@upsertable" && o["@required"].include?("true")  )
+            true
+          end || false
+          
           case o["@Type"]
           when "Edm.String"
             if o["@picklist"].present?
@@ -159,79 +176,111 @@
               # }
               { name: o["@Name"], type: "string",
                 optional: optional,
+                sticky: sticky,
+                hint: description,
                 label:  o["@label"].labelize,
                 hint: "Pick list option id should be provided" }
             else
             { name: o["@Name"], type: "string",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
             end
           when "Edm.Boolean"
             { name: o["@Name"], type: "boolean",
               control_type: "checkbox",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Byte"
             { name: o["@Name"], type: "integer",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.DateTime"
             { name: o["@Name"], type: "date_time",
               control_type: "date_time",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize}
           when "Edm.Decimal"
             { name: o["@Name"], type: "number",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Double"
             { name: o["@Name"], type: "number",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Single"
             { name: o["@Name"], type: "number",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Guid"
             { name: o["@Name"], type: "string",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Int16"
             { name: o["@Name"], type: "integer",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Int32"
             { name: o["@Name"], type: "integer",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Int64"
             { name: o["@Name"], type: "integer",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.SByte"
             { name: o["@Name"], type: "integer",
               control_type: "number",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.Time"
             { name: o["@Name"], type: "string",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           when "Edm.DateTimeOffset"
             { name: o["@Name"], type: "timestamp",
               control_type: "date_time",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           else
             { name: o["@Name"], type: "string",
               optional: optional,
+              sticky: sticky,
+              hint: description,
               label:  o["@label"].labelize }
           end
         end&.presence || [{}]
@@ -409,7 +458,9 @@
       description: "Update <span class='provider'>object</span> in " \
         "<span class='provider'>SuccessFactors</span>",
       subtitle: "Update object in SuccessFactors",
-      help: "Merges only data fields which are passed in input",
+      help: "All property values in the Entity either take the values "\
+      "provided in the request body or are reset to their default value"\
+      " if no data is provided in the request",
 
       config_fields: [
         {
@@ -479,6 +530,176 @@
           end.inject(:merge)
         end
         final_objects&.first || {}
+      end
+    },
+
+    merge_object: {
+      description: "Merge <span class='provider'>object</span> in " \
+        "<span class='provider'>SuccessFactors</span>",
+      subtitle: "Merge object in SuccessFactors",
+      help: "Merge updates only the properties provided in the request"\
+      " body, and leaves the data not mentioned in the request body in"\
+      " its current state",
+
+      config_fields: [
+        {
+          name: "object_name", label: "Object",
+          control_type: "select",
+          pick_list: "entity_set_update",
+          hint: "Select object",
+          optional: false
+        }
+      ],
+
+      input_fields: lambda do |object_definitions|
+        object_definitions["object_update"]
+      end,
+
+      execute: lambda do |_connection, input|
+        object_name = input.delete("object_name")
+        key_column = call(:object_key, object_name: object_name)
+        date_fields = call(:date_fields, object_name: object_name)
+        payload = input.map do |key, value|
+          if date_fields.include?(key)
+            if value.present?
+              date_time = value.to_time.utc.iso8601.to_i * 1000 unless
+              value.blank?
+              { key => "\/Date(" + date_time + ")\/" }
+            else
+              { key => value }
+            end
+          else
+            { key => value }
+          end
+        end.inject(:merge)
+
+        post("/odata/v2/" + object_name + "('" +
+            input.delete(key_column) + "')").
+          params("$format": "JSON").
+          headers("Content-Type": "application/json;charset=utf-8",
+            "x-http-method": "MERGE").
+          payload(payload).
+          after_response do |_code, body, _header, _message|
+            body
+          end.after_error_response(500) do |_code, body, _header, message|
+            error("#{message}: #{body}")
+          end
+      end,
+
+      output_fields: lambda do |object_definitions|
+        object_definitions["object_output"]
+      end,
+
+      sample_output: lambda do |_connection, input|
+        date_fields = call(:date_fields, object_name: input["object_name"])
+        objects = get("/odata/v2/" + input["object_name"]).
+                  params("$top": 1).
+                  dig("d", "results")
+        final_objects = objects.map do |obj|
+          obj.map do |key, value|
+            if date_fields.include?(key)
+              if value.present?
+                date_time = value.scan(/\d+/)[0] unless value.blank?
+                { key => (date_time.to_i / 1000).to_i.to_time }
+              else
+                { key => value }
+              end
+            else
+              { key => value }
+            end
+          end.inject(:merge)
+        end
+        final_objects&.first || {}
+      end
+    },
+
+    upsert_object: {
+      description: "Upsert <span class='provider'>object</span> in " \
+        "<span class='provider'>SuccessFactors</span>",
+      subtitle: "Upsert object in SuccessFactors",
+      help: "The server updates the Entity for which an external id already exists ",
+
+      config_fields: [
+        {
+          name: "object_name", label: "Object",
+          control_type: "select",
+          pick_list: "entity_set_upsert",
+          hint: "Select object",
+          optional: false
+        }
+      ],
+
+      input_fields: lambda do |object_definitions|
+        [
+          { name: "objects", type: "array",
+            of: "object",
+            properties: object_definitions["object_upsert"] }
+        ]
+      end,
+
+      execute: lambda do |_connection, input|
+        object_name = input.delete("object_name")
+        key_column = call(:object_key, object_name: object_name)
+        date_fields = call(:date_fields, object_name: object_name)
+        payload = input["objects"].map do |obj| 
+          obj.map do |key, value|
+            if key.include?(key_column)
+              {
+                "__metadata": {
+                  "uri": "User('" + obj.delete(key) + "')"
+                }
+              }
+            elsif date_fields.include?(key)
+              if value.present?
+                date_time = value.to_time.utc.iso8601.to_i * 1000 unless
+                value.blank?
+                { key => "\/Date(" + date_time + ")\/" }
+              else
+                { key => value }
+              end
+            else
+              { key => value }
+            end
+          end.inject(:merge)
+        end
+        objects = post("/odata/v2/upsert", payload).
+          params("$format": "JSON").
+          headers("Content-Type": "application/json;charset=utf-8").
+          after_response do |_code, body, _header, _message|
+            body.dig("d")
+          end.after_error_response(500) do |_code, body, _header, message|
+            error("#{message}: #{body}")
+          end
+          {
+            objects: objects
+          }
+      end,
+
+      output_fields: lambda do |object_definitions|
+        [
+          { name: "objects", type: "array", of: "object",
+            properties: [
+              { name: "key", label: "User ID" },
+              { name: "status" },
+              { name: "editStatus" },
+              { name: "message", label: "Error message" },
+              { name: "index", type: "integer" },
+              { name: "httpCode", type: "integer" },
+              { name: "inlineResults" }
+            ] }
+        ]
+      end,
+      
+      sample_output: lambda do
+        {
+          key: "31917",
+          status: "OK",
+          editStatus: "UPDATED",
+          message: "Error message",
+          index: "1",
+          httpCode: "204",
+          inlineResults: ""
+        }
       end
     },
     
@@ -645,6 +866,14 @@
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
             "EntityContainer", 0, "EntitySet").
       select { |field| field["@updatable"] == "true" }.map do |obj|
+        [obj["@label"], obj["@Name"]]
+      end
+    end,
+    entity_set_upsert: lambda do
+      get("/odata/v2/$metadata").response_format_xml.
+        dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
+            "EntityContainer", 0, "EntitySet").
+      select { |field| field["@upsertable"] == "true" }.map do |obj|
         [obj["@label"], obj["@Name"]]
       end
     end
