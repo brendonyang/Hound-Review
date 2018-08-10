@@ -779,7 +779,7 @@
         objects = get("/odata/v2/" + object_name).
           params("$filter": "lastModifiedDateTime gt datetimeoffset'" +
            last_updated_since + "'",
-            "$orderby": "lastModifiedDateTime asc").
+           "$orderby": "lastModifiedDateTime asc").
           headers("Accept": "application/json",
             "Content-Type": "application/json").
           dig("d", "results")
@@ -847,35 +847,36 @@
     entity_set: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-            "EntityContainer", 0, "EntitySet").map do |obj|
-        [obj["@label"], obj["@Name"]]
-      end
+          "EntityContainer", 0, "EntitySet").map do |obj|
+            [obj["@label"], obj["@Name"]]
+          end
     end,
     
     entity_set_create: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-            "EntityContainer", 0, "EntitySet").
+          "EntityContainer", 0, "EntitySet").
         select { |field| field["@creatable"] == "true" }.map do |obj|
-        [obj["@label"], obj["@Name"]]
-      end
+          [obj["@label"], obj["@Name"]]
+        end
     end,
     
     entity_set_update: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-            "EntityContainer", 0, "EntitySet").
+          "EntityContainer", 0, "EntitySet").
         select { |field| field["@updatable"] == "true" }.map do |obj|
-        [obj["@label"], obj["@Name"]]
-      end
+          [obj["@label"], obj["@Name"]]
+        end
     end,
+
     entity_set_upsert: lambda do
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
-            "EntityContainer", 0, "EntitySet").
+          "EntityContainer", 0, "EntitySet").
         select { |field| field["@upsertable"] == "true" }.map do |obj|
-        [obj["@label"], obj["@Name"]]
-      end
+          [obj["@label"], obj["@Name"]]
+        end
     end
   }
 }
