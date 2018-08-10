@@ -713,11 +713,11 @@
             optional: false }
         ]
       end,
-      execute: lambda do |connection, input|
+      execute: lambda do |_connection, input|
         {
           option_labels: get("/odata/v2/PicklistOption(" +
-              input["optionid"] + ")/picklistLabels").
-          params("$format": "json").dig("d", "results")
+           input["optionid"] + ")/picklistLabels").
+            params("$format": "json").dig("d", "results")
         }
       end,
       output_fields: lambda do |object_definitions|
