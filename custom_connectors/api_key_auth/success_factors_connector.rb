@@ -321,9 +321,9 @@
         end
         filter_string = filter_params.smart_join(" and ")
         objects = get("/odata/v2/" + object_name + "?$filter=" + filter_string).
-                  headers("Accept": "application/json",
-                          "Content-Type": "application/json").
-                  dig("d", "results")
+          headers("Accept": "application/json",
+            "Content-Type": "application/json").
+          dig("d", "results")
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
@@ -441,7 +441,7 @@
             if date_fields.include?(key)
               if value.present?
                 date_time = value.scan(/\d+/)[0] unless value.blank?
-                { key => (date_time.to_i / 1000).to_i.to_time }
+                { key => (date_time.to_i / 1000).to_i.to_date }
               else
                 { key => value }
               end
@@ -777,17 +777,17 @@
         last_updated_since ||= (input["since"].presence || 1.hour.ago).
                                to_time.utc.iso8601
         objects = get("/odata/v2/" + object_name).
-                  params("$filter": "lastModifiedDateTime gt datetimeoffset'" +
-                                    last_updated_since + "'",
-                         "$orderby": "lastModifiedDateTime asc").
-                  headers("Accept": "application/json",
-                          "Content-Type": "application/json").
-                  dig("d", "results")
+          params("$filter": "lastModifiedDateTime gt datetimeoffset'" +
+           last_updated_since + "'",
+            "$orderby": "lastModifiedDateTime asc").
+          headers("Accept": "application/json",
+            "Content-Type": "application/json").
+          dig("d", "results")
 
         # add custom column for dedup, timestamp conversion
         final_objects = objects.map do |obj|
           obj["object_id"] = obj[key_column] + "-" +
-                             obj["lastModifiedDateTime"].scan(/\d+/)[0].to_s
+           obj["lastModifiedDateTime"].scan(/\d+/)[0].to_s
           obj.map do |key, value|
             if date_fields.include?(key)
               if value.present?
@@ -822,7 +822,7 @@
       sample_output: lambda do |_connection, input|
         date_fields = call(:date_fields, object_name: input["object_name"])
         objects = get("/odata/v2/" + input["object_name"]).params("$top": 1).
-                  dig("d", "results")
+          dig("d", "results")
         final_objects = objects.map do |obj|
           obj.map do |key, value|
             if date_fields.include?(key)
@@ -856,7 +856,7 @@
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
             "EntityContainer", 0, "EntitySet").
-      select { |field| field["@creatable"] == "true" }.map do |obj|
+        select { |field| field["@creatable"] == "true" }.map do |obj|
         [obj["@label"], obj["@Name"]]
       end
     end,
@@ -865,7 +865,7 @@
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
             "EntityContainer", 0, "EntitySet").
-      select { |field| field["@updatable"] == "true" }.map do |obj|
+        select { |field| field["@updatable"] == "true" }.map do |obj|
         [obj["@label"], obj["@Name"]]
       end
     end,
@@ -873,7 +873,7 @@
       get("/odata/v2/$metadata").response_format_xml.
         dig("edmx:Edmx", 0, "edmx:DataServices", 0, "Schema", 0,
             "EntityContainer", 0, "EntitySet").
-      select { |field| field["@upsertable"] == "true" }.map do |obj|
+        select { |field| field["@upsertable"] == "true" }.map do |obj|
         [obj["@label"], obj["@Name"]]
       end
     end
