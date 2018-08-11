@@ -646,7 +646,7 @@
             if key.include?(key_column)
               {
                 "__metadata": {
-                  "uri": "User('" + obj.delete(key) + "')"
+                  "uri": object_name + "('" + obj.delete(key) + "')"
                 }
               }
             elsif date_fields.include?(key)
