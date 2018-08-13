@@ -46,34 +46,44 @@
   object_definitions: {
     object_output: {
       fields: lambda do |_connection, config|
-        call("generate_schama", object_name: config['object_name'], type: "@visible")
+        call("generate_schema",
+             object_name: config['object_name'],
+             type: "@visible")
       end
     },
 
     object_create: {
       fields: lambda do |_connection, config|
-        call("generate_schama", object_name: config['object_name'], type: "@creatable")
+        call("generate_schema",
+             object_name: config['object_name'],
+             type: "@creatable")
       end
     },
 
     object_update: {
       fields: lambda do |_connection, config|
-        call("generate_schama", object_name: config['object_name'], type: "@updatable")
+        call("generate_schema",
+             object_name: config['object_name'],
+             type: "@updatable")
       end
     },
 
     object_upsert: {
       fields: lambda do |_connection, config|
-        call("generate_schama", object_name: config['object_name'], type: "@upsertable")
+        call("generate_schema",
+             object_name: config['object_name'],
+             type: "@upsertable")
       end
     },
 
     object_filter: {
       fields: lambda do |_connection, config|
-        call("generate_schama", object_name: config['object_name'], type: "@filterable")
+        call("generate_schema",
+             object_name: config['object_name'],
+             type: "@filterable")
       end
     },
-    
+
     option_labels: {
       fields: lambda do
         [
@@ -129,7 +139,7 @@
         end
     end,
     #generates schema for the objects w.r.t operations.
-    generate_schama: lambda do |input|
+    generate_schema: lambda do |input|
       key_column = call(:object_key, {object_name: input[:object_name]})
       get("/odata/v2/#{input[:object_name]}/$metadata").
       response_format_xml.
@@ -141,45 +151,32 @@
             if input[:type] == "@updatable" && o["@Name"] == key_column
               false
             elsif input[:type] == "@creatable" || input[:type] == "@updatable"
-              o["@required"].include?("false") 
+              o["@required"].include?("false")
             else
               true
             end
-          description = if ( input[:type] == "@upsertable" && o["@Name"] == key_column )
-            if o["@Name"] == key_column
-              "Key column, updates if exists othewise create new one"
-            elsif o["@required"].include?("true")
-              "Required "
-            end
-          end || nil
-          sticky = if ( input[:type] == "@upsertable" && o["@required"].include?("true")  )
-            true
-          end || false
-          
+          description =
+            if (input[:type] == "@upsertable" && o["@Name"] == key_column)
+              if o["@Name"] == key_column
+                "Key column, updates if exists othewise create new one"
+              elsif o["@required"].include?("true")
+                "Required "
+              end
+            end || nil
+          sticky =
+            if input[:type] == "@upsertable" && o["@required"].include?("true")
+              true
+            end || false
+
           case o["@Type"]
           when "Edm.String"
             if o["@picklist"].present?
-              # switch if all the picklists are configured correctly in SF
-              # options = call("get_pick_list_options", { pick_list_id: o["@picklist"] })&.presence || []
-              # { name: o["@Name"], control_type: "select",
-              #   pick_list: options,
-              #   optional: optional,
-              #   label:  o["@label"].labelize
-                  # toggle_hint: "Select from list",
-                  # toggle_field: {
-                  #   toggle_hint: "Enter custom value",
-                  #   name: o["@Name"], type: "string",
-                  #   control_type: "text",
-                  #   label: o["@label"].labelize,
-                  #   optional: optional
-                  # }
-              # }
               { name: o["@Name"], type: "string",
                 optional: optional,
                 sticky: sticky,
                 hint: description,
                 label:  o["@label"].labelize,
-                hint: "Pick list option id should be provided" }
+                hint: "Pick list option ID should be provided" }
             else
             { name: o["@Name"], type: "string",
               optional: optional,
@@ -375,8 +372,8 @@
     },
 
     create_object: {
-      description: "Create <span class='provider'>Object</span> in " \
-      "<span class='provider'>SuccessFactors</span>",
+      description: "Create <span class='provider'>object</span> in " \
+        "<span class='provider'>SuccessFactors</span>",
       subtitle: "Create object in SuccessFactors",
 
       config_fields: [
@@ -458,9 +455,9 @@
       description: "Update <span class='provider'>object</span> in " \
         "<span class='provider'>SuccessFactors</span>",
       subtitle: "Update object in SuccessFactors",
-      help: "All property values in the Entity either take the values "\
-      "provided in the request body or are reset to their default value"\
-      " if no data is provided in the request",
+      help: "All property values in the entity either take the values " \
+        "provided in the request body or reset to their default value " \
+        "if no data is provided in the request.",
 
       config_fields: [
         {
@@ -537,9 +534,9 @@
       description: "Merge <span class='provider'>object</span> in " \
         "<span class='provider'>SuccessFactors</span>",
       subtitle: "Merge object in SuccessFactors",
-      help: "Merge updates only the properties provided in the request"\
-      " body, and leaves the data not mentioned in the request body in"\
-      " its current state",
+      help: "Merge updates only the properties provided in the request " \
+        "body, and leaves the data not mentioned in the request body in " \
+        "its current state.",
 
       config_fields: [
         {
@@ -617,7 +614,8 @@
       description: "Upsert <span class='provider'>object</span> in " \
         "<span class='provider'>SuccessFactors</span>",
       subtitle: "Upsert object in SuccessFactors",
-      help: "The server updates the Entity for which an external id already exists ",
+      help: "Creates a new object if it doesn't exist, and updates the entity" \
+        " if it already exists.",
 
       config_fields: [
         {
@@ -641,7 +639,7 @@
         object_name = input.delete("object_name")
         key_column = call(:object_key, object_name: object_name)
         date_fields = call(:date_fields, object_name: object_name)
-        payload = input["objects"].map do |obj| 
+        payload = input["objects"].map do |obj|
           obj.map do |key, value|
             if key.include?(key_column)
               {
@@ -670,6 +668,7 @@
           end.after_error_response(500) do |_code, body, _header, message|
             error("#{message}: #{body}")
           end
+
           {
             objects: objects
           }
@@ -689,7 +688,7 @@
             ] }
         ]
       end,
-      
+
       sample_output: lambda do
         {
           key: "31917",
@@ -702,17 +701,20 @@
         }
       end
     },
-    
-    get_option_labels_by_optionid: {
-      description: "Get <span class='provider'>Option labels</span>  " \
-        "<span class='provider'> by Option Id</span>",
-      subtitle: "Get option label's by optionid",
+
+    get_option_labels: {
+      title: "Get option labels",
+      subtitle: "Get option labels by option ID",
+      description: "Get <span class='provider'>option labels</span> by option" \
+        " ID in <span class='provider'>SuccessFactors</span>",
+
       input_fields: lambda do |_|
         [
-          { name: "optionid", label: "Option id",
+          { name: "optionid", label: "Option ID",
             optional: false }
         ]
       end,
+
       execute: lambda do |_connection, input|
         {
           option_labels: get("/odata/v2/PicklistOption(" +
@@ -720,12 +722,14 @@
             params("$format": "json").dig("d", "results")
         }
       end,
+
       output_fields: lambda do |object_definitions|
         [
           { name: "option_labels", type: "array", of: "object",
             properties: object_definitions["option_labels"] }
         ]
       end,
+
       sample_output: lambda do
         {
           optionId: "31917",
@@ -735,7 +739,6 @@
         }
       end
     }
-
   },
 
   triggers: {
@@ -881,4 +884,3 @@
     end
   }
 }
-
