@@ -148,7 +148,11 @@
       select { |field| field[input[:type]] == "true" }.
         map do |o|
           optional =
-            if ((input[:type] == "@updatable" || input[:type] == "@upsertable") && o["@Name"] == key_column )
+            if ((input[:type] == "@updatable" || input[:type] == "@upsertable") &&
+             o["@Name"] == key_column )
+              false
+            elsif input[:object_name] == "User" && input[:type] == "@updatable" && 
+              o["@Name"] == "username"
               false
             elsif input[:type] == "@creatable" || input[:type] == "@updatable"
               o["@required"].include?("false")
@@ -762,6 +766,7 @@
         }
       end
     }
+    
   },
 
   triggers: {
@@ -907,3 +912,4 @@
     end
   }
 }
+
