@@ -148,7 +148,7 @@
       select { |field| field[input[:type]] == "true" }.
         map do |o|
           optional =
-            if input[:type] == "@updatable" && o["@Name"] == key_column
+            if ((input[:type] == "@updatable" || input[:type] == "@upsertable") && o["@Name"] == key_column )
               false
             elsif input[:type] == "@creatable" || input[:type] == "@updatable"
               o["@required"].include?("false")
@@ -170,6 +170,21 @@
 
           case o["@Type"]
           when "Edm.String"
+            # switch if all the picklists are configured correctly in SF
+              # options = call("get_pick_list_options", { pick_list_id: o["@picklist"] })&.presence || []
+              # { name: o["@Name"], control_type: "select",
+              #   pick_list: options,
+              #   optional: optional,
+              #   label:  o["@label"].labelize
+              #     toggle_hint: "Select from list",
+              #     toggle_field: {
+              #       toggle_hint: "Enter custom value",
+              #       name: o["@Name"], type: "string",
+              #       control_type: "text",
+              #       label: o["@label"].labelize,
+              #       optional: optional
+              #     }
+              # }
             if o["@picklist"].present?
               { name: o["@Name"], type: "string",
                 optional: optional,
@@ -190,7 +205,15 @@
               optional: optional,
               sticky: sticky,
               hint: description,
-              label:  o["@label"].labelize }
+              label:  o["@label"].labelize,
+              toggle_hint: "Select from list",
+                toggle_field: {
+                  toggle_hint: "Enter custom value",
+                  name: o["@Name"], type: "string",
+                  control_type: "text",
+                  label: o["@label"].labelize,
+                  optional: optional
+                } }
           when "Edm.Byte"
             { name: o["@Name"], type: "integer",
               control_type: "number",
