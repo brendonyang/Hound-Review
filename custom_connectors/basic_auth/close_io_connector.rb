@@ -1,5 +1,5 @@
 {
-  title: 'Close.io',
+  title: 'Close',
 
   connection: {
     fields: [
@@ -13,8 +13,8 @@
     authorization: {
       type: 'basic_auth',
       
-      # close.io uses api key only for authentication. treats apikey as username and password left blank
-      # curl -u "{your api_key}:" "https://app.close.io/api/v1/me/"
+      # Close uses api key only for authentication. treats apikey as username and password left blank
+      # curl -u "{your api_key}:" "https://api.close.com/api/v1/me/"
       credentials: ->(connection) {
         user(connection['api_key'])
         password("")
@@ -47,7 +47,7 @@
   },
 
   test: ->(connection) {
-    get("https://app.close.io/api/v1/me/")
+    get("https://api.close.com/api/v1/me/")
   },
 
   actions: {
@@ -59,7 +59,7 @@
         ]
       },
       execute: ->(connection, input) {
-        get("https://app.close.io/api/v1/lead/#{input['lead_id']}/")
+        get("https://api.close.com/api/v1/lead/#{input['lead_id']}/")
       },
       output_fields: ->(object_definitions) {
         object_definitions['lead']
@@ -84,7 +84,7 @@
         since = last_updated_since || input['since'] || Time.now
         
         # Close.io currently does not support _order_by parameter for leads, defaults to order by date_update
-        results = get("https://app.close.io/api/v1/lead/").
+        results = get("https://api.close.com/api/v1/lead/").
                   params(query: "updated > #{since.to_time.iso8601}",
                          _limit: 5)
 
