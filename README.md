@@ -121,8 +121,8 @@ connection: {
   authorization: {
     type: "basic_auth",
 
-    # close.io uses api key only for authentication. treats apikey as username and password left blank
-    # curl -u "{your api_key}:" "https://app.close.io/api/v1/me/"
+    # Close uses api key only for authentication. treats apikey as username and password left blank
+    # curl -u "{your api_key}:" "https://api.close.com/api/v1/me/"
     credentials: lambda do |connection|
       user(connection["api_key"])
       password("")
@@ -131,7 +131,7 @@ connection: {
 }
 ```
 
-In this example, Close.io API expects an API Key generated in the individual User’s account. It should be used as a username with a blank password in the standard basic authentication format.
+In this example, Close API expects an API Key generated in the individual User’s account. It should be used as a username with a blank password in the standard basic authentication format.
 
 So, to adjust the connections portion of the code to suit this behaviour, simply request for an API instead of username + password.
 
@@ -300,9 +300,9 @@ Note:
 
 An action can make one or more requests to various endpoints. Because the framework handles the authentication side of a request, you will not have to worry about that here.
 
-The most important thing is to identify which endpoint will address the purpose of the action. Here we will take a look at Close.io's Lead object and how to retrieve it via the API.
+The most important thing is to identify which endpoint will address the purpose of the action. Here we will take a look at Close's Lead object and how to retrieve it via the API.
 
-![close.io get lead object image](images/closeio-doc.png)
+![close get lead object image](images/closeio-doc.png)
 
 ```ruby
 actions: {
@@ -316,7 +316,7 @@ actions: {
     end,
 
     execute: lambda do |connection, input|
-      get("https://app.close.io/api/v1/lead/#{input["lead_id"]}/")
+      get("https://api.close.com/api/v1/lead/#{input["lead_id"]}/")
     end,
 
     output_fields: lambda do |object_definitions|
@@ -326,7 +326,7 @@ actions: {
 }
 ```
 
-A very simple action looks like this. A get request to the Close.io leads endpoint. In this case, the particular lead’s details is appended in the endpoint.
+A very simple action looks like this. A get request to the Close leads endpoint. In this case, the particular lead’s details is appended in the endpoint.
 
 ### Parameter / Payload
 
@@ -933,7 +933,7 @@ While the config_fields is empty, document objects will have no fields (empty ar
 
 - [Clearbit connector](https://github.com/workato/custom_connector_docs/blob/master/custom_connectors/basic_auth/clearbit_connector.rb)
 
-- [Close.io connector](https://github.com/workato/custom_connector_docs/blob/master/custom_connectors/basic_auth/close_io_connector.rb)
+- [Close connector](https://github.com/workato/custom_connector_docs/blob/master/custom_connectors/basic_auth/close_io_connector.rb)
 
 - [Click Time connector](https://github.com/workato/custom_connector_docs/blob/master/custom_connectors/basic_auth/click_time_connector.rb)
 
